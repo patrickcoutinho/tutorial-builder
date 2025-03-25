@@ -6,8 +6,12 @@ authors = [
     {name = "Patrick  Coutinho",email = "patrick@istyle.com.br"}
 ]
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11.11,<4.0"
 dependencies = [
+    "langgraph (>=0.3.20,<0.4.0)",
+    "langchain-core (>=0.3.48,<0.4.0)",
+    "pydantic (>=2.10.6,<3.0.0)",
+    "streamlit (>=1.43.2,<2.0.0)"
 ]
 
 [tool.poetry]
