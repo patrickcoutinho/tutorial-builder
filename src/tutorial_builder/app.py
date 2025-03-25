@@ -1,6 +1,6 @@
 import streamlit as st
 from typing import Dict, Any
-from tutorial_builder.main import create_graph, HumanMessage, BaseMessage
+from main import create_graph, HumanMessage, BaseMessage
 
 graph = create_graph()
 
