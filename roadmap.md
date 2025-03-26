@@ -19,6 +19,11 @@
 - [ ] Melhorar a exibição das mensagens
 - [ ] Implementar visualização do tutorial final
 - [ ] Adicionar opção para exportar o tutorial (Markdown)
+- [ ] Implementar suporte a múltiplos idiomas
+  - Configurar inglês como idioma principal
+  - Adicionar suporte ao português
+  - Implementar seletor de idioma na interface
+  - Garantir que os agentes respondam no idioma selecionado
 
 ### 3. Gerenciamento de Estado (Básico)
 
