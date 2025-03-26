@@ -23,12 +23,13 @@ class Planner(BaseModel):
 
     """
 
-    subject: str = Field(
+    subject: str | None = Field(
         description="O assunto, tecnologia ou ferramenta que o usuário deseja aprender",
+        default=None,
     )
-    level: Literal["iniciante", "intermediario", "avancado"] = Field(
+    level: Literal["iniciante", "intermediario", "avancado"] | None = Field(
         description="O nível atual de proficiência do usuário (iniciante, intermediário, avançado)",
-        default="iniciante",
+        default=None,
     )
     project_type: Optional[str] = Field(
         description="O tipo de projeto no qual o usuário está aprendendo ou planeja aprender",
