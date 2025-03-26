@@ -5,7 +5,7 @@
 ### 1. Implementação dos Agentes (Core)
 
 - [x] Estrutura básica do grafo com nós planner, expert e writer
-- [ ] Implementar o agente Planner com LLM real
+- [x] Implementar o agente Planner com LLM real
   - Definir prompt para extrair assunto e nível do tutorial
   - Implementar validação básica das saídas
 - [ ] Implementar o agente Expert com LLM real (versão básica)
