@@ -58,8 +58,6 @@ def main() -> None:
             st.session_state.expert_output = output["expert_output"]
             st.session_state.writer_output = output["writer_output"]
 
-            print("\n\n", st.session_state.messages, "\n\n")
-
             # Mostrar resposta do assistente
             if output and "messages" in output:
                 last_message: BaseMessage = output["messages"][-1]
