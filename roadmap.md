@@ -56,9 +56,9 @@
 ### 1. Arquitetura e Segurança
 
 - [ ] #22 Refatorar para Clean Architecture
-  - Definir camadas da arquitetura
-  - Implementar injeção de dependências
-  - Documentar arquitetura e padrões
+  - [x] #22.1 Definir camadas da arquitetura
+  - [ ] #22.2 Implementar injeção de dependências
+  - [ ] #22.3 Documentar arquitetura e padrões
 - [ ] #23 Implementar TrustCall para validação de saídas do LLM
 - [ ] #24 Adicionar mecanismos de detecção de conteúdo inadequado
 - [ ] #25 Implementar limites de uso e proteções contra abusos
