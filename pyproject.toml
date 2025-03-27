@@ -17,8 +17,11 @@ dependencies = [
 [tool.poetry]
 packages = [
     { include = "tutorial_builder", from = "src" },
-    { include = "main", from = "src/tutorial_builder" },
     { include = "entities", from = "src/tutorial_builder/domain" },
+    { include = "interfaces", from = "src/tutorial_builder/domain" },
+    { include = "services", from = "src/tutorial_builder/application" },
+    { include = "persistence", from = "src/tutorial_builder/infrastructure" },
+    { include = "llm", from = "src/tutorial_builder/infrastructure" },
 ]
 
 [tool.poetry.group.dev.dependencies]

@@ -21,6 +21,7 @@ max_line_length = 88
 # Markdown files
 [*.md]
 trim_trailing_whitespace = false
+indent_size = 2
 
 # YAML files
 [*.{yml,yaml}]
