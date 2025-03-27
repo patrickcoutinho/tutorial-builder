@@ -1,8 +1,10 @@
 import streamlit as st
 from typing import Dict, Any
-from main import create_graph, HumanMessage, BaseMessage
+from main import create_workflow
+from langchain_core.messages import HumanMessage, BaseMessage
 
-graph = create_graph()
+
+workflow = create_workflow()
 
 
 def init_session_state() -> None:
@@ -40,9 +42,9 @@ def main() -> None:
         with st.chat_message("user"):
             st.write(prompt)
 
-        # Processar a mensagem com o grafo
+        # Processar a mensagem com o workflow
         with st.spinner("Pensando..."):
-            output: Dict[str, Any] = graph.invoke(
+            output: Dict[str, Any] = workflow.invoke(
                 {
                     "messages": st.session_state.messages,
                     "planner_output": st.session_state.planner_output,
