@@ -64,6 +64,8 @@ class PlannerService(PlannerAgent):
             As informações que realmente foram obtidas do usuário pelo sistema estão abaixo no campo INFORMACOES_OBTIDAS.
                 Caso falte alguma informação NÃO OPCIONAL, você deve informar ao usuário que precisa dela para prosseguir.
 
+            NÃO PROSSIGA sem obter todas as informações necessárias subject e level.
+
             <INFORMACOES_OBTIDAS>
             {informacoes_obtidas}
             </INFORMACOES_OBTIDAS>
@@ -71,7 +73,7 @@ class PlannerService(PlannerAgent):
 
         return SystemMessage(
             content=PLANNER_SYSTEM_MESSAGE.format(
-                schema=schema, informacoes_obtidas=planner
+                schema=schema, informacoes_obtidas=str(planner.model_dump())
             )
         ).content
 
@@ -91,9 +93,22 @@ class PlannerService(PlannerAgent):
             As informações devem ser condizentes com o schema do Planner.
             Não invente nada. Se um campo não for mencionado, deixe-o como None.
 
+            NÃO PROSSIGA sem obter todas as informações necessárias subject e level.
+
             Caso a MENSAGEM DO USUARIO expresse o desejo de prosseguir,
                 utilizando palavras como "prossigir", "continuar", "ok", etc,
                 você deve preencher os campos faltantes com N/A.
+
+            NÃO preencha subject e level com N/A.
+
+            Leve em consideração que:
+              - o usuário pode responder em português ou inglês.
+              - ele pode cometer erros de digitação, como beginner, intermidiate, advanded, etc.
+              - ele pode usar abreviaturas, como "API" para "Application Programming Interface", etc.
+              - ele pode usar gírias, como:
+                "básico" para "beginner",
+                "mid" para "intermediate",
+                "ninja" para "advanced", etc.
 
             Informacoes já obtidas:
             {str(current_planner)}
