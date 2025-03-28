@@ -9,9 +9,12 @@
   - Definir prompt para extrair assunto e nível do tutorial
   - Implementar validação básica das saídas
 - [ ] #3 Implementar o agente Expert com LLM real (versão básica)
-  - Definir prompt para gerar conteúdo técnico
+  - [x] Definir prompt para gerar o learning path
+  - [x] Gerar os passos individuais
+  - [ ] Manter contexto do objetivo e dos passos anteriores
+  - [ ] Dar opção de seguir, feedbacke reportar erros
 - [ ] #4 Implementar o agente Writer com LLM real (versão básica)
-  - Definir prompt para estruturar o tutorial final
+  - [ ]Definir prompt para estruturar o tutorial final
 
 ### 2. Interface do Usuário (Básica)
 
