@@ -93,11 +93,14 @@ class PlannerService(PlannerAgent):
             As informações devem ser condizentes com o schema do Planner.
             Não invente nada. Se um campo não for mencionado, deixe-o como None.
 
-            NÃO PROSSIGA sem obter todas as informações necessárias subject e level.
+            NÃO PROSSIGA sem obter todas as informações necessárias: subject e level.
 
             Caso a MENSAGEM DO USUARIO expresse o desejo de prosseguir,
                 utilizando palavras como "prossigir", "continuar", "ok", etc,
-                você deve preencher os campos faltantes com N/A.
+                você deve preencher os campos faltantes
+                (project_type, environment, instructions) com N/A.
+                Preencha com N/A apenas os campos que não foram informados,
+                    que estão vazios (None).
 
             NÃO preencha subject e level com N/A.
 
