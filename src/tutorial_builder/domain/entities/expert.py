@@ -1,5 +1,5 @@
 from typing import List, Optional, Literal
-from enum import Enum
+from enum import Enum, StrEnum
 from pydantic import BaseModel, Field, field_validator
 from datetime import datetime
 
@@ -10,7 +10,7 @@ class DifficultyLevel(str, Enum):
     ADVANCED = "advanced"
 
 
-class StepStatus(str, Enum):
+class StepStatus(StrEnum):
     PENDING = "pending"
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
@@ -41,7 +41,9 @@ class ExpertStep(BaseModel):
     Attributes:
         step_number (int): Número sequencial do passo
         title (str): Título conciso do passo
-        description (str): Descrição detalhada do passo, com instruções, código, explicações, etc. No formato Markdown.
+        description (str): Descrição simples do passo, informando o que será feito.
+        prerequisites (str): Conhecimentos ou ferramentas necessárias antes de iniciar o passo
+        content (str): Conteúdo detalhado do passo, com instruções, código, explicações, etc. No formato Markdown.
         estimated_time (Optional[int]): Tempo estimado para conclusão do passo em minutos
         resources (Optional[List[str]]): Links ou recursos relacionados ao passo
         trouble_shooting (Optional[List[TroubleShooting]]): Problemas reportados pelo usuário e como solucioná-los
@@ -54,7 +56,15 @@ class ExpertStep(BaseModel):
     title: str = Field(..., description="Título conciso do passo")
     description: str | None = Field(
         default=None,
-        description="Descrição detalhada do passo, com instruções, código, explicações, etc. No formato Markdown.",
+        description="Descrição simples do passo, informando o que será feito. No formato Markdown.",
+    )
+    prerequisites: str | None = Field(
+        default=None,
+        description="Conhecimentos ou ferramentas necessárias antes de iniciar o passo",
+    )
+    content: str | None = Field(
+        default=None,
+        description="Conteúdo detalhado do passo, com instruções, código, explicações, etc. No formato Markdown.",
     )
     estimated_time: Optional[int] = Field(
         default=None, description="Tempo estimado para conclusão do passo em minutos"
@@ -70,7 +80,9 @@ class ExpertStep(BaseModel):
         default=None, description="Feedback do usuário sobre o passo"
     )
     status: StepStatus = Field(
-        default=StepStatus.PENDING, description="Status do passo"
+        default=StepStatus.PENDING,
+        description="Status do passo",
+        serialization_alias="status",
     )
     completed_at: Optional[datetime] = Field(
         default=None, description="Data e hora de conclusão do passo"
