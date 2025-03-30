@@ -5,14 +5,14 @@
 ### 1. Implementação dos Agentes (Core)
 
 - [x] #1 Estrutura básica do grafo com nós planner, expert e writer
-- [x] #2 Implementar o agente Planner com LLM real
-  - [ ] #2.1 Definir prompt para extrair assunto e nível do tutorial
-  - [ ] #2.2 Implementar validação básica das saídas
+- [x] #2 PLANNER: Implementar o agente Planner com LLM real
+  - [x] #2.1 Definir prompt para extrair assunto e nível do tutorial
+  - [x] #2.2 Implementar validação básica das saídas
 - [ ] #3 Implementar o agente Expert com LLM real (versão básica)
   - [x] #3.1 Definir prompt para gerar o learning path
   - [x] #3.2 Gerar os passos individuais
   - [ ] #3.3 Manter contexto do objetivo e dos passos anteriores
-  - [ ] #3.4 Exibir learning path após criar
+  - [x] #3.4 Exibir learning path após criar
   - [ ] #3.5 Campo prerequisets e ajuste no prompt para não gerar steps de pré-requisitos
     - [ ] #3.5.1 Adicionar pré-requisitos na geração do step no campo adequado
     - [ ] #3.5.2 Exibir prerequisites com st.expander
@@ -91,3 +91,11 @@
 - [ ] #35 Documentar API e fluxos de uso
 - [ ] #36 Lançar versão beta para testes com usuários reais
 - [ ] #37 Revisar feedback e iterar sobre o projeto
+
+## Brainstorming
+
+- Sistema de avaliação dos tutoriais
+- Modo leitura dos tutoriais, para refazer/revisar
+  - Com chatbot para tirar dúvidas etc.
+- Autenticação
+- Interface com nextjs
