@@ -91,18 +91,19 @@ class PlannerService(PlannerAgent):
         extracted_prompt = f"""
             Extraia apenas as informações que estiverem claramente presentes no texto abaixo.
             As informações devem ser condizentes com o schema do Planner.
+
             Não invente nada. Se um campo não for mencionado, deixe-o como None.
 
-            NÃO PROSSIGA sem obter todas as informações necessárias: subject e level.
+            NÃO PROSSIGA sem obter todas as informações necessárias: `subject` e `level`.
 
             Caso a MENSAGEM DO USUARIO expresse o desejo de prosseguir,
                 utilizando palavras como "prossigir", "continuar", "ok", etc,
                 você deve preencher os campos faltantes
-                (project_type, environment, instructions) com N/A.
+                (`project_type`, `environment`, `instructions`) com "N/A".
                 Preencha com N/A apenas os campos que não foram informados,
                     que estão vazios (None).
 
-            NÃO preencha subject e level com N/A.
+            NÃO preencha `subject` e `level` com "N/A".
 
             Leve em consideração que:
               - o usuário pode responder em português ou inglês.
@@ -112,6 +113,9 @@ class PlannerService(PlannerAgent):
                 "básico" para "beginner",
                 "mid" para "intermediate",
                 "ninja" para "advanced", etc.
+
+            - `level` deve ser sempre convertido para o padrão definido no schema do Planner:
+                "beginner", "intermediate" ou "advanced"
 
             Informacoes já obtidas:
             {str(current_planner)}
