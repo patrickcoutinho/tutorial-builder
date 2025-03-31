@@ -1,5 +1,5 @@
 from typing import List, Optional, Literal
-from enum import Enum
+from enum import Enum, StrEnum
 from pydantic import BaseModel, Field, field_validator
 from datetime import datetime
 
@@ -10,8 +10,9 @@ class DifficultyLevel(str, Enum):
     ADVANCED = "advanced"
 
 
-class StepStatus(str, Enum):
+class StepStatus(StrEnum):
     PENDING = "pending"
+    IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
     FAILED = "failed"
 
@@ -40,7 +41,9 @@ class ExpertStep(BaseModel):
     Attributes:
         step_number (int): Número sequencial do passo
         title (str): Título conciso do passo
-        description (str): Descrição detalhada do passo, com instruções, código, explicações, etc. No formato Markdown.
+        description (str): Descrição simples do passo, informando o que será feito.
+        prerequisites (str): Conhecimentos ou ferramentas necessárias antes de iniciar o passo
+        content (str): Conteúdo detalhado do passo, com instruções, código, explicações, etc. No formato Markdown.
         estimated_time (Optional[int]): Tempo estimado para conclusão do passo em minutos
         resources (Optional[List[str]]): Links ou recursos relacionados ao passo
         trouble_shooting (Optional[List[TroubleShooting]]): Problemas reportados pelo usuário e como solucioná-los
@@ -51,9 +54,17 @@ class ExpertStep(BaseModel):
 
     step_number: int = Field(..., description="Número sequencial do passo")
     title: str = Field(..., description="Título conciso do passo")
-    description: str = Field(
-        ...,
-        description="Descrição detalhada do passo, com instruções, código, explicações, etc. No formato Markdown.",
+    description: str | None = Field(
+        default=None,
+        description="Descrição simples do passo, informando o que será feito. No formato Markdown.",
+    )
+    prerequisites: str | None = Field(
+        default=None,
+        description="Conhecimentos ou ferramentas necessárias antes de iniciar o passo",
+    )
+    content: str | None = Field(
+        default=None,
+        description="Conteúdo detalhado do passo, com instruções, código, explicações, etc. No formato Markdown.",
     )
     estimated_time: Optional[int] = Field(
         default=None, description="Tempo estimado para conclusão do passo em minutos"
@@ -69,7 +80,9 @@ class ExpertStep(BaseModel):
         default=None, description="Feedback do usuário sobre o passo"
     )
     status: StepStatus = Field(
-        default=StepStatus.PENDING, description="Status do passo"
+        default=StepStatus.PENDING,
+        description="Status do passo",
+        serialization_alias="status",
     )
     completed_at: Optional[datetime] = Field(
         default=None, description="Data e hora de conclusão do passo"
@@ -89,7 +102,6 @@ class Expert(BaseModel):
     Attributes:
         subject (str): Assunto ou tecnologia sendo aprendida
         learning_path (List[ExpertStep]): Sequência de passos para aprendizado
-        current_step (Optional[int]): Passo atual no processo de aprendizado
         difficulty_level (DifficultyLevel): Nível de dificuldade geral do processo
         project_type (Optional[str]): Tipo de projeto que o usuário está aprendendo
         environment (Optional[str]): Ambiente ou contexto onde o usuário pretende usar o conhecimento
@@ -100,7 +112,9 @@ class Expert(BaseModel):
         last_updated_at (datetime): Data e hora da última atualização
     """
 
-    subject: str = Field(..., description="Assunto ou tecnologia sendo aprendida")
+    subject: str | None = Field(
+        default=None, description="Assunto ou tecnologia sendo aprendida"
+    )
     difficulty_level: DifficultyLevel = Field(
         default=DifficultyLevel.BEGINNER,
         description="Nível de dificuldade geral do processo",
@@ -123,9 +137,6 @@ class Expert(BaseModel):
     )
     learning_objectives: Optional[List[str]] = Field(
         default=None, description="Objetivos específicos a serem alcançados"
-    )
-    current_step: Optional[int] = Field(
-        default=0, description="Passo atual no processo de aprendizado"
     )
     prerequisites: Optional[List[str]] = Field(
         default=None,
@@ -160,32 +171,27 @@ class Expert(BaseModel):
         Returns:
             Optional[ExpertStep]: O passo atual ou None se não houver passos ou o índice for inválido
         """
-        if self.current_step is not None and 0 <= self.current_step < len(
-            self.learning_path
-        ):
-            return self.learning_path[self.current_step]
-        return None
+        if not self.learning_path:
+            return None
 
-    def advance_step(self) -> Optional[ExpertStep]:
-        """
-        Avança para o próximo passo no processo de aprendizado
+        # Encontra o primeiro passo com status PENDING ou IN_PROGRESS
+        sorted_steps = sorted(self.learning_path, key=lambda x: x.step_number)
 
-        Returns:
-            Optional[ExpertStep]: O próximo passo ou None se não houver mais passos
-        """
-        if self.current_step is not None and self.current_step + 1 < len(
-            self.learning_path
-        ):
-            self.current_step += 1
-            return self.get_current_step()
+        for step in sorted_steps:
+            if step.status in [StepStatus.PENDING, StepStatus.IN_PROGRESS]:
+                return step
+
         return None
 
     def reset_learning_path(self):
         """
         Reinicia o processo de aprendizado para o primeiro passo
         """
-        self.current_step = 0
         self.last_updated_at = datetime.now()
+        self.learning_path = [
+            step.model_copy(update={"status": StepStatus.PENDING})
+            for step in self.learning_path
+        ]
 
     def update_step_status(self, step_number: int, status: StepStatus):
         """
@@ -198,14 +204,15 @@ class Expert(BaseModel):
         Raises:
             ValueError: Se o passo não for encontrado
         """
-        if self.current_step is not None and self.current_step == step_number:
-            step = self.get_current_step()
-            step.status = status
-            if status == StepStatus.COMPLETED:
-                step.completed_at = datetime.now()
-            self.last_updated_at = datetime.now()
-        else:
-            raise ValueError(f"Passo {step_number} não encontrado")
+        if not self.learning_path:
+            return
+
+        for step in self.learning_path:
+            if step.step_number == step_number:
+                step.status = status
+                if status == StepStatus.COMPLETED:
+                    step.completed_at = datetime.now()
+                break
 
     def get_progress(self) -> float:
         """

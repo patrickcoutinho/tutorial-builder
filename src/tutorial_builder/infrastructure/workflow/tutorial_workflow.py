@@ -1,12 +1,12 @@
 import random
+import streamlit as st
 
 from typing import Dict, Any
 from langchain_core.messages import AIMessage, BaseMessage
 from langgraph.graph import MessagesState, StateGraph, START, END
 
-from domain.entities import Planner
-from domain.interfaces import PlannerAgent, Workflow
-from domain.interfaces.planner_agent import PlannerAgent
+from domain.entities import Planner, Expert
+from domain.interfaces import PlannerAgent, Workflow, PlannerAgent, ExpertAgent
 from infrastructure.persistence import MemoryState
 
 
@@ -16,8 +16,8 @@ class TutorialState(MessagesState):
     """
 
     messages: list[BaseMessage] = []
-    planner_output: Planner = Planner()
-    expert_output: Dict[str, Any] | None = None
+    planner_output: Planner | None = None
+    expert_output: Expert | None = None
     writer_output: Dict[str, Any] | None = None
 
 
@@ -29,9 +29,11 @@ class TutorialWorkflow(Workflow):
     def __init__(
         self,
         planner_service: PlannerAgent,
+        expert_service: ExpertAgent,
         memory_state: MemoryState,
     ):
         self.planner_service = planner_service
+        self.expert_service = expert_service
         self.memory_state = memory_state
         self._workflow = None
 
@@ -39,6 +41,7 @@ class TutorialWorkflow(Workflow):
         """
         Nó responsável por planejar o tutorial com base nas entradas do usuário.
         """
+
         if state["planner_output"] is None:
             state["planner_output"] = Planner()
 
@@ -63,7 +66,6 @@ class TutorialWorkflow(Workflow):
             state["messages"].append(AIMessage(content=response))
 
         except Exception as e:
-            print("\n\nErro na extração:", str(e))
             system_message = self.planner_service.create_system_message(
                 state["planner_output"]
             )
@@ -78,35 +80,58 @@ class TutorialWorkflow(Workflow):
         """
         Nó responsável por fornecer conhecimento especializado sobre o assunto.
         """
-        # Implementação fake apenas para estruturar o grafo
-        if state["expert_output"]:
+        # Recupera o expert do estado se existir, senão pega um novo
+        expert = state["expert_output"] or self.expert_service.get_expert()
+
+        self.expert_service.expert = expert
+
+        expert.subject = state["planner_output"].subject
+        expert.difficulty_level = state["planner_output"].level
+        expert.project_type = state["planner_output"].project_type
+        expert.environment = state["planner_output"].environment
+        expert.instructions = state["planner_output"].instructions
+
+        try:
+            if not expert.learning_path:
+                self.expert_service.generate_learning_path(state["planner_output"])
+
+                # Adiciona uma mensagem resumindo o caminho de aprendizado
+                summary = "Caminho de aprendizado gerado:\n\n"
+                for step in expert.learning_path:
+                    summary += f"{step.step_number}. {step.title} (Tempo estimado: {step.estimated_time} minutos)\n"
+
+                summary += "\n\n**Digite OK para continuar.**"
+
+                state["expert_output"] = expert
+                state["messages"].append(AIMessage(content=summary))
+
+                return state
+
+        except Exception as e:
+            print("\n\nErro na geração do caminho de aprendizado:", str(e))
             return state
 
-        last_human_message = state["messages"][-1].content
+        try:
+            current_step = expert.get_current_step()
+            step_content = self.expert_service.generate_step_content(current_step)
 
-        print("\n\nExpert: last_human_message:", last_human_message)
+            with st.expander(f"Passo {step_content.step_number}: Pré-requisitos"):
+                st.write(step_content.prerequisites)
 
-        if last_human_message == "expert_end":
-            state["messages"].append(AIMessage(content="Expert finished"))
-            state["expert_output"] = {
-                "content": "Conteúdo técnico sobre Python para iniciantes"
-            }
+            ai_message_md = f"""# Passo {step_content.step_number}: {step_content.title}
+
+---
+{step_content.content}
+"""
+
+            state["messages"].append(AIMessage(content=ai_message_md))
+            state["expert_output"] = expert
 
             return state
 
-        state["messages"].append(
-            AIMessage(
-                random.choice(
-                    [
-                        "expert: Why so serious?",
-                        "expert: Ah, I'm not an expert, I'm a beginner.",
-                        "expert: Just a simple AI, I don't have the ability to teach you anything.",
-                    ]
-                )
-            )
-        )
-
-        return state
+        except Exception as e:
+            print("\n\nErro na geração do conteúdo do passo atual:", str(e))
+            return state
 
     def _create_writer_node(self, state: TutorialState) -> TutorialState:
         """
@@ -155,7 +180,7 @@ class TutorialWorkflow(Workflow):
         """
         Função que decide para qual nó seguir após o expert.
         """
-        if state["expert_output"]:
+        if state["expert_output"].is_completed():
             return "writer"
 
         return END
