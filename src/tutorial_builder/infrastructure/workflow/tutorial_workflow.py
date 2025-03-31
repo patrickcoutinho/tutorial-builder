@@ -1,4 +1,5 @@
 import random
+import streamlit as st
 
 from typing import Dict, Any
 from langchain_core.messages import AIMessage, BaseMessage
@@ -84,6 +85,12 @@ class TutorialWorkflow(Workflow):
 
         self.expert_service.expert = expert
 
+        expert.subject = state["planner_output"].subject
+        expert.difficulty_level = state["planner_output"].level
+        expert.project_type = state["planner_output"].project_type
+        expert.environment = state["planner_output"].environment
+        expert.instructions = state["planner_output"].instructions
+
         try:
             if not expert.learning_path:
                 self.expert_service.generate_learning_path(state["planner_output"])
@@ -93,8 +100,12 @@ class TutorialWorkflow(Workflow):
                 for step in expert.learning_path:
                     summary += f"{step.step_number}. {step.title} (Tempo estimado: {step.estimated_time} minutos)\n"
 
+                summary += "\n\n**Digite OK para continuar.**"
+
                 state["expert_output"] = expert
                 state["messages"].append(AIMessage(content=summary))
+
+                return state
 
         except Exception as e:
             print("\n\nErro na geração do caminho de aprendizado:", str(e))
@@ -104,8 +115,16 @@ class TutorialWorkflow(Workflow):
             current_step = expert.get_current_step()
             step_content = self.expert_service.generate_step_content(current_step)
 
-            # summary = f"Conteúdo do passo atual:\n\n{step_content.model_dump()}"
-            state["messages"].append(AIMessage(content=step_content.description))
+            with st.expander(f"Passo {step_content.step_number}: Pré-requisitos"):
+                st.write(step_content.prerequisites)
+
+            ai_message_md = f"""# Passo {step_content.step_number}: {step_content.title}
+
+---
+{step_content.content}
+"""
+
+            state["messages"].append(AIMessage(content=ai_message_md))
             state["expert_output"] = expert
 
             return state
