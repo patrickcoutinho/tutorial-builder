@@ -8,14 +8,14 @@
 - [x] #2 PLANNER: Implementar o agente Planner com LLM real
   - [x] #2.1 Definir prompt para extrair assunto e nível do tutorial
   - [x] #2.2 Implementar validação básica das saídas
-- [ ] #3 Implementar o agente Expert com LLM real (versão básica)
+- [x] #3 Implementar o agente Expert com LLM real (versão básica)
   - [x] #3.1 Definir prompt para gerar o learning path
   - [x] #3.2 Gerar os passos individuais
-  - [ ] #3.3 Manter contexto do objetivo e dos passos anteriores
+  - [x] #3.3 Manter contexto do objetivo e dos passos anteriores
   - [x] #3.4 Exibir learning path após criar
-  - [ ] #3.5 Campo prerequisites e ajuste no prompt
-    - [ ] #3.5.1 Adicionar pré-requisitos na geração do step
-    - [ ] #3.5.2 Exibir prerequisites com st.expander
+  - [x] #3.5 Campo prerequisites e ajuste no prompt
+    - [x] #3.5.1 Adicionar pré-requisitos na geração do step
+    - [x] #3.5.2 Exibir prerequisites com st.expander
 - [ ] #4 Implementar o agente Writer com LLM real (versão básica)
   - [ ] #4.1 Definir prompt para estruturar o tutorial final
 

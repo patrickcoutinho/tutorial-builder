@@ -1,6 +1,8 @@
 import json
 
 from typing import List
+
+from pydantic import BaseModel
 from domain.interfaces import LLMService, ExpertAgent
 from domain.entities import Expert, ExpertStep, StepStatus, Planner
 from langchain_core.messages import SystemMessage
@@ -151,13 +153,6 @@ PRÉ-REQUISITOS:
 
         expert = self.expert
 
-        format = """
-{
-    "content": "string markdown",
-    "prerequisites": "string markdown"
-}
-"""
-
         SYSTEM_MESSAGE = f"""
 Você é um especialista em {expert.subject} e também em criar conteúdo detalhado para tutoriais.
 
@@ -176,7 +171,7 @@ INSTRUÇÕES ADICIONAIS DO USUÁRIO: {expert.instructions}
 </COMPLETED_STEPS>
 
 OBSERVAÇÃO IMPORTANTE:
-    Observe os passos já completados e NãO adicione informações repetidas.
+    Observe os passos já completados e NÃO adicione informações repetidas.
 
 ## PASSO ATUAL
 
@@ -205,25 +200,19 @@ Gere um campo chamado `prerequisites`:
 
 NÃO INVENTE COMANDOS, FERRAMENTAS OU CONCEITOS,
     APENAS USE O QUE É CONHECIMENTO REAL DE SUA DATABASE DE TREINAMENTO.
-
-O conteúdo deve ser mapeado como `content`,
-    os pré-requisitos devem ser mapeados como `prerequisites`
-    e devem ser em formato Markdown.
-
-Devolva um JSON (sem inserir marcação de JSON: ```json)
-    com os dois campos em formato Markdown,
-    sem nenhum texto adicional e com o seguinte formato:
-
-{format}
 """
 
-        content_data = self.llm_service.invoke([SYSTEM_MESSAGE])
+        class ExtractedInfo(BaseModel):
+            content: str
+            prerequisites: str
 
-        content_data = content_data.replace("'", '"')
-        content_data = json.loads(content_data)
+        extracted_info = self.llm_service.invoke_with_structured_output(
+            SYSTEM_MESSAGE,
+            ExtractedInfo.model_json_schema(),
+        )
 
-        step.content = content_data["content"]
-        step.prerequisites = content_data["prerequisites"]
+        step.content = extracted_info["content"]
+        step.prerequisites = extracted_info["prerequisites"]
         step.status = StepStatus.COMPLETED
 
         self.expert.learning_path[step.step_number - 1] = step

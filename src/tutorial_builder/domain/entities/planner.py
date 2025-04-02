@@ -5,10 +5,7 @@ from pydantic import BaseModel, Field
 
 class Planner(BaseModel):
     """
-    Planner Model
-
-    Este módulo define a classe `Planner`, que representa o esquema para um plano de aprendizagem.
-    É implementado usando o `BaseModel` do Pydantic para fornecer validação e serialização de dados.
+    Modelo para o Planner Agent que cria o plano de aprendizado
 
     Attributes:
         subject (Optional[str]): O assunto, tecnologia ou ferramenta que o usuário deseja aprender.
