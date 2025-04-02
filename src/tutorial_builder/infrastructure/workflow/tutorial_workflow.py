@@ -1,13 +1,12 @@
-import random
 import streamlit as st
 
 from typing import Dict, Any
 from langchain_core.messages import AIMessage, BaseMessage
 from langgraph.graph import MessagesState, StateGraph, START, END
 
-from domain.entities import Planner, Expert
-from domain.interfaces import PlannerAgent, Workflow, PlannerAgent, ExpertAgent
-from infrastructure.persistence import MemoryState
+from entities import Planner, Expert, Writer
+from interfaces import PlannerAgent, Workflow, PlannerAgent, ExpertAgent, WriterAgent
+from persistence import MemoryState
 
 
 class TutorialState(MessagesState):
@@ -18,7 +17,7 @@ class TutorialState(MessagesState):
     messages: list[BaseMessage] = []
     planner_output: Planner | None = None
     expert_output: Expert | None = None
-    writer_output: Dict[str, Any] | None = None
+    writer_output: Writer | None = None
 
 
 class TutorialWorkflow(Workflow):
@@ -30,10 +29,12 @@ class TutorialWorkflow(Workflow):
         self,
         planner_service: PlannerAgent,
         expert_service: ExpertAgent,
+        writer_service: WriterAgent,
         memory_state: MemoryState,
     ):
         self.planner_service = planner_service
         self.expert_service = expert_service
+        self.writer_service = writer_service
         self.memory_state = memory_state
         self._workflow = None
 
@@ -118,11 +119,13 @@ class TutorialWorkflow(Workflow):
             with st.expander(f"Passo {step_content.step_number}: Pré-requisitos"):
                 st.write(step_content.prerequisites)
 
-            ai_message_md = f"""# Passo {step_content.step_number}: {step_content.title}
+            ai_message_md = f"""
+# Passo {step_content.step_number}: {step_content.title}
 
 ---
 {step_content.content}
 """
+            print("ai_message_md", ai_message_md)
 
             state["messages"].append(AIMessage(content=ai_message_md))
             state["expert_output"] = expert
@@ -137,33 +140,22 @@ class TutorialWorkflow(Workflow):
         """
         Nó responsável por escrever o tutorial final com base nas saídas anteriores.
         """
-        last_human_message = state["messages"][-1].content
+        if state["writer_output"] is None:
+            state["writer_output"] = Writer()
 
-        if last_human_message == "writer_end":
-            state["messages"] = [AIMessage(content="Writer finished")]
-            state["writer_output"] = {
-                "tutorial": "Tutorial completo sobre Python para iniciantes"
-            }
+        self.writer_service.expert = state["expert_output"]
 
-            # Resetar o estado após o writer terminar
-            state["planner_output"] = None
-            state["expert_output"] = None
-            state["writer_output"] = None
+        tutorial = self.writer_service.generate_tutorial(state["expert_output"])
 
-            return state
+        print("tutorial", tutorial)
+        print("TUTORIAL RAW TYPE:", type(tutorial))
+        print("TUTORIAL RAW VALUE:", repr(tutorial))
 
-        # Implementação fake apenas para estruturar o grafo
-        state["messages"].append(
-            AIMessage(
-                random.choice(
-                    [
-                        "writer: I'm just a simple AI, I don't have the ability to write.",
-                        "writer: Wtf?",
-                        "writer: No way, I'm not writing that.",
-                    ]
-                )
-            )
-        )
+        state["writer_output"] = tutorial
+        state["messages"].append(AIMessage(content=state["writer_output"].tutorial))
+
+        with open(f"tutorial-{state['writer_output'].subject}.md", "w") as f:
+            f.write(state["writer_output"].tutorial)
 
         return state
 
